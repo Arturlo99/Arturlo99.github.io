@@ -1,1 +1,208 @@
-Hello World
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>WebGL Project</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        body {
+            margin: 0;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+
+            background-size: cover;
+        }
+    </style>
+</head>
+
+<body>
+
+    <script src="three/build/three.js"></script>
+    <script src="three/examples/js/controls/OrbitControls.js"></script>
+    <script src="three/examples/js/loaders/GLTFLoader.js"></script>
+    <script>
+     
+        // Declaring variables
+        var action,action1,action2;
+        var sunAzimuth = 0.0;
+        var sunElevation = 0.0;
+        var lastframe = Date.now()
+        var R = 500;
+        var sunLightR = R - 100;
+        var mixer,mixer1,mixer2;
+        aPressed = new Boolean(false);
+        nPressed = new Boolean(false);
+        // Load 3D Scene
+        var scene = new THREE.Scene();
+        var loader = new THREE.GLTFLoader();
+        const textureLoader = new THREE.TextureLoader();
+        // Load Camera Perspective
+        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+        camera.position.set(-75, 75, 150);
+
+        // Load a Renderer
+        var renderer = new THREE.WebGLRenderer({ alpha: false });
+        renderer.physicallyCorrectLights = true;
+        renderer.setClearColor(0xC5C5C3);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        window.addEventListener('resize', function () {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        })
+
+        // Key Event Listener
+        document.addEventListener('keydown', keyPressed);
+        function keyPressed(event) {
+            if (event.key == 'a' || event.key == 'A') {
+
+                if (aPressed == false) {
+                    aPressed = true;
+                }
+                else {
+                    aPressed = false;
+                }
+
+            }
+            if (event.key == 'n' || event.key == 'N') {
+
+                if (nPressed == false) {
+                    nPressed = true;
+                    earthMaterial.map = earthNightTexture;
+                    sunMaterial.map = moonTexture;
+                    scene.background = bgNightTexture;
+                }
+                else {
+                    nPressed = false;
+                    earthMaterial.map = earthTexture;
+                    sunMaterial.map = sunTexture;
+                    scene.background = bgDayTexture;
+                }
+            }
+        }
+
+        // Load the Orbitcontroller
+        var controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.minDistance = 50;
+        controls.maxDistance = 700;
+        //controls.maxPolarAngle =Math.PI /2 - 0.01;
+        controls.update();
+
+        // Load textures
+        var earthNightTexture = textureLoader.load('./textures/earth_nightmap.jpg');
+        var earthTexture = textureLoader.load('./textures/earth_daymap.jpg');
+        var sunTexture = textureLoader.load('./textures/sun.jpg');
+        var moonTexture = textureLoader.load('./textures/moon.jpg');
+        var bgDayTexture = textureLoader.load('./textures/sky.jpg');
+        var bgNightTexture = textureLoader.load('./textures/stars_milky_way.jpg');
+        var specMap = textureLoader.load('./textures/2k_earth_specular_map.tif');
+        var normalMap = textureLoader.load('./textures/2k_earth_normal_map.tif');
+        scene.background = bgDayTexture;
+
+        // Create earth object
+        var earthGeometry = new THREE.SphereBufferGeometry(200, 100, 100);
+        var earthMaterial = new THREE.MeshPhongMaterial({
+            color: 0xaaaaaa,
+            specular: 0x333333,
+            shininess: 15,
+            map: earthTexture, specularMap: specMap, normalMap: normalMap, 
+        });
+        var earth = new THREE.Mesh(earthGeometry, earthMaterial);
+        earth.position.set(0, -199, 0)
+        scene.add(earth);
+
+        
+        // Create sun object
+        var sunGeometry = new THREE.SphereBufferGeometry(50, 32, 32);
+        var sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture, flatShading: true });
+        var sun = new THREE.Mesh(sunGeometry, sunMaterial);
+        sun.position.set(300, 150, -300)
+        scene.add(sun);
+
+
+        // Lights
+        var ambientLight = new THREE.AmbientLight(0xffffff);
+        scene.add(ambientLight);
+        sunLight = new THREE.DirectionalLight(0xaaaaaa, 6);
+        sunLight.position.set(0, 400, 0);
+        scene.add(sunLight);
+
+
+        // Loading 3D Objects - clouds
+        loader.load('./gltf/rain_2/scene.gltf', function (gltf) {
+            mixer = new THREE.AnimationMixer(gltf.scene);
+            action = mixer.clipAction(gltf.animations[0]);
+            gltf.scene.scale.set(0.1, 0.1, 0.1);
+            gltf.scene.position.x = -100;				    //Position (x = right+ left-) 
+            gltf.scene.position.y = -50;				    //Position (y = up+, down-)
+            gltf.scene.position.z = 0;				    //Position (z = front +, back-)
+
+            scene.add(gltf.scene);
+        });
+
+        loader.load('./gltf/rain_1/scene.gltf', function (gltf) {
+            mixer1 = new THREE.AnimationMixer(gltf.scene);
+            action1 = mixer1.clipAction(gltf.animations[0]);
+            gltf.scene.scale.set(0.1, 0.1, 0.1);
+            gltf.scene.position.x = 100;				    //Position (x = right+ left-) 
+            gltf.scene.position.y = -50;				    //Position (y = up+, down-)
+            gltf.scene.position.z = 0;				    //Position (z = front +, back-)
+
+            scene.add(gltf.scene);
+        });
+
+        loader.load('./gltf/rain_1/scene.gltf', function (gltf) {
+            mixer2 = new THREE.AnimationMixer(gltf.scene);
+            action2 = mixer2.clipAction(gltf.animations[0]);
+            gltf.scene.scale.set(0.1, 0.1, 0.1);
+            gltf.scene.position.x = 0;				    //Position (x = right+ left-) 
+            gltf.scene.position.y = -80;				    //Position (y = up+, down-)
+            gltf.scene.position.z = 140;				    //Position (z = front +, back-)
+
+            scene.add(gltf.scene);
+        });
+
+        // Animations
+        function animate() {
+            dt = (Date.now() - lastframe) / 1000
+
+            if (aPressed==true) {
+                if (mixer) {
+                    action.play();
+                    action1.play();
+                    action2.play();
+                    mixer.update(dt);
+                    mixer1.update(dt);
+                    mixer2.update(dt);
+                }
+            }
+
+            lastframe = Date.now()
+            sunAzimuth += 0.005;
+            var sunX = R * Math.cos(sunAzimuth) * Math.cos(sunElevation);
+            var sunY = R * Math.sin(sunElevation);
+            var sunZ = R * Math.sin(sunAzimuth) * Math.cos(sunElevation);
+            var sunLightX = sunLightR * Math.cos(sunAzimuth) * Math.cos(sunElevation);
+            var sunLightY = sunLightR * Math.sin(sunElevation);
+            var sunLightZ = sunLightR * Math.sin(sunAzimuth) * Math.cos(sunElevation);
+            sun.position.set(sunX, sunY, sunZ);
+            sunLight.position.set(sunLightX, sunLightY, sunLightZ);
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+            controls.update;
+        }
+
+
+        animate();
+
+    </script>
+</body>
+
+</html>
