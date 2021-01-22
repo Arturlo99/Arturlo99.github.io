@@ -42,7 +42,7 @@
         const textureLoader = new THREE.TextureLoader();
         // Load Camera Perspective
         var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-        camera.position.set(-75, 75, 150);
+        camera.position.set(-75, 75, 650);
 
         // Load a Renderer
         var renderer = new THREE.WebGLRenderer({ alpha: false });
@@ -90,8 +90,8 @@
 
         // Load the Orbitcontroller
         var controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.minDistance = 50;
-        controls.maxDistance = 700;
+        controls.minDistance = 100;
+        controls.maxDistance = 1000;
         //controls.maxPolarAngle =Math.PI /2 - 0.01;
         controls.update();
 
