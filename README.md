@@ -1,4 +1,4 @@
-# Computer Graphics Project
+# God simulator - Computer Graphics Project
 A WebGL-Project for Computer Graphics.<br/>
 Used technologies: WebGL, Three.js.<br/>
 # Features:
